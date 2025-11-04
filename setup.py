@@ -12,7 +12,7 @@ requirements = [
 
 setup(
     name="sanssouci",
-    version="0.1.3",
+    version="0.1.4",
     author="Alexandre Blain, Nicolas Enjalbert Courrech, Pierre Neuvial, Nils Peyrouset, Laurent Risser, Bertrand Thirion",
     author_email="pierre.neuvial@math.univ-toulouse.fr",
     description="Post hoc inference via multiple testing",
