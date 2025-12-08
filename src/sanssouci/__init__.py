@@ -5,7 +5,7 @@ from .reference_families import (
     linear_template, inverse_linear_template,
     shifted_linear_template, inverse_shifted_linear_template)
 from .post_hoc_bounds import (
-    max_fp, min_tp, curve_max_fp)
+    max_fp, min_tp, curve_max_fp, curve_min_tdp)
 from .lambda_calibration import (
     calibrate_jer,
     get_permuted_p_values,
@@ -29,8 +29,9 @@ __all__ = [
     'get_pivotal_stats',
     'get_pivotal_stats_shifted',
     'inverse_shifted_linear_template',
-    'shifted_linear_template'
+    'shifted_linear_template',
     'max_fp',
     'min_tp',
     'curve_max_fp',
+    'curve_min_tdp',
 ]
