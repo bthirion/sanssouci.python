@@ -68,7 +68,7 @@ def test_coherence_linear_template():
     dichotomy and pivotal stats are indeed equivalent.
     """
     alpha = 0.05
-    B = 100
+    n_permutations = 100
     p = 50
     seed = 42
     np.random.seed(seed)
@@ -77,13 +77,13 @@ def test_coherence_linear_template():
     alphas = np.linspace(0, 1, 1000)
     simes_matrix = np.vstack([linear_template(alpha,
                                               p, p) for alpha in alphas])
-    pval0 = np.random.uniform(size=(B, p))
+    pval0 = np.random.uniform(size=(n_permutations, p))
     pval0 = np.sort(pval0, axis=1)
     calibrated_tpl = calibrate_jer(alpha, simes_matrix, pval0, k_max=p)
 
     # Calibrate using pivotal statistics
 
-    piv_stat = get_pivotal_stats(pval0, K=p)
+    piv_stat = get_pivotal_stats(pval0, k_max=p)
     lambda_quant = np.quantile(piv_stat, alpha)
-    np.testing.assert_array_almost_equal(calibrated_tpl[-1],
-                                         lambda_quant, decimal=3)
+    np.testing.assert_array_almost_equal(
+        calibrated_tpl[-1], lambda_quant, decimal=3)
