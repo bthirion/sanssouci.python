@@ -15,7 +15,12 @@ def test_get_permuted_p_values():
     X = rng.randn(n, p)
     n_permutations = 100
     categ = rng.randint(2, size=n)
-    pvals = get_permuted_p_values(X, categ, n_permutations=n_permutations, row_test_fun=stats.ttest_ind)
+    pvals = get_permuted_p_values(
+        X,
+        categ,
+        n_permutations=n_permutations,
+        row_test_fun=stats.ttest_ind
+    )
     assert pvals.shape == (n_permutations, p)
     assert pvals.min() > 1.e-7
     assert pvals.max() <= 1
@@ -23,12 +28,22 @@ def test_get_permuted_p_values():
 
     stats_ = [stats.ks_2samp, stats.bartlett, stats.ranksums, stats.kruskal]
     for stat in stats_:
-        pvals = get_permuted_p_values(X, categ, n_permutations=n_permutations, row_test_fun=stat)
+        pvals = get_permuted_p_values(
+            X,
+            categ,
+            n_permutations=n_permutations,
+            row_test_fun=stat
+        )
         assert pvals.min() > 1.e-7
         assert pvals.max() <= 1
         assert np.sum(pvals < .1) < n_permutations * p * .12
 
-    pvals = get_permuted_p_values(X, categ, n_permutations=n_permutations, row_test_fun=row_welch_tests)
+    pvals = get_permuted_p_values(
+        X,
+        categ,
+        n_permutations=n_permutations,
+        row_test_fun=row_welch_tests
+    )
     assert pvals.shape == (n_permutations, p)
     assert pvals.min() > 1.e-7
     assert pvals.max() <= 1
