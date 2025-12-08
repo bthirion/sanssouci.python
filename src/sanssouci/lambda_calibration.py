@@ -14,7 +14,11 @@ import warnings
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-def get_permuted_p_values(X, labels, n_permutations=100, row_test_fun=stats.ttest_ind):
+def get_permuted_p_values(
+        X,
+        labels,
+        n_permutations=100,
+        row_test_fun=stats.ttest_ind):
     """
     Get permutation p-values: Get a matrix of p-values under the null
     hypothesis obtained by repeated permutation of class labels.
@@ -51,7 +55,8 @@ def get_permuted_p_values(X, labels, n_permutations=100, row_test_fun=stats.ttes
     # Init
     n, p = X.shape
 
-    # Step 1: calculate $p$-values for n_permutations permutations of the class assignments
+    # Step 1: calculate p-values for n_permutations permutations 
+    # of the class assignments
 
     # 1.1: Intialise all vectors and matrices
     shuffled_labels = labels.copy()
@@ -86,7 +91,11 @@ def get_permuted_p_values(X, labels, n_permutations=100, row_test_fun=stats.ttes
     return pval0
 
 
-def get_permuted_p_values_one_sample(X, n_permutations=100, seed=None, n_jobs=1):
+def get_permuted_p_values_one_sample(
+        X,
+        n_permutations=100,
+        seed=None,
+        n_jobs=1):
     """
     Get permutation p-values: Get a matrix of p-values under the null
     hypothesis obtained by sign-flipping (one-sample test).
@@ -187,10 +196,11 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
     return pivotal_stats
 
 
-def get_pivotal_stats_shifted(p0,
-                              inverse_template=inverse_shifted_linear_template,
-                              K=-1,
-                              k_min=0):
+def get_pivotal_stats_shifted(
+        p0,
+        inverse_template=inverse_shifted_linear_template,
+        K=-1,
+        k_min=0):
     """Get pivotal statistic
 
     Parameters
@@ -253,9 +263,11 @@ def estimate_jer(template, pval0, k_max, k_min=0):
 
     signs = np.sign(id_ranks - cutoffs)
     sgn_trunc = signs[:, k_min: k_max]
-    JER = np.sum([np.any(sgn_trunc[perm] >= 0) for perm in range(n_permutations)]) / n_permutations
+    jer = np.sum(
+        [np.any(sgn_trunc[perm] >= 0) for perm in range(n_permutations)]
+        ) / n_permutations
 
-    return JER
+    return jer
 
 
 def calibrate_jer(alpha, learned_templates, pval0, k_max, min_dist=1, k_min=0):
