@@ -160,7 +160,8 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, k_max=-1):
     inverse_template : function
         A function with the same I/O as inverse_template_linear
     k_max :  int
-        For JER control over 1:k_max, i.e. joint control of all k-FWER, k<= k_max.
+        For JER control over 1:k_max, i.e. joint control of all k-FWER,
+        k<= k_max.
         Automatically set to p if its input value is < 0.
 
     Returns
@@ -212,7 +213,8 @@ def get_pivotal_stats_shifted(
     inverse_template : function
         A function with the same I/O as inverse_template_linear
     k_max :  int
-        For JER control over 1:k_max, i.e. joint control of all k-FWER, k<= k_max.
+        For JER control over 1:k_max, i.e. joint control of all k-FWER,
+        k<= k_max.
         Automatically set to p if its input value is < 0.
     k_min : int
         parameter that defines the shift of the template.
