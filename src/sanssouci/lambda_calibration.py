@@ -14,10 +14,11 @@ import warnings
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-def get_permuted_p_values(X, labels, B=100, row_test_fun=stats.ttest_ind):
+def get_permuted_p_values(X, labels, n_permutations=100, row_test_fun=stats.ttest_ind):
     """
     Get permutation p-values: Get a matrix of p-values under the null
     hypothesis obtained by repeated permutation of class labels.
+
     Parameters
     ----------
     X : array-like of shape (n,p)
@@ -26,7 +27,7 @@ def get_permuted_p_values(X, labels, B=100, row_test_fun=stats.ttest_ind):
     labels : array-like of shape (n,)
         numpy array of size [n], containing n values in {0, 1}, each of them
         specifying the column indices of the first and the second sample.
-    B : int
+    n_permutations : int
         number of permutations to be performed (default=100)
     row_test_fun : function
         testing function with the same I/O as 'stats.ttest_ind' (default).
@@ -36,8 +37,8 @@ def get_permuted_p_values(X, labels, B=100, row_test_fun=stats.ttest_ind):
         "stats.bartlett", "stats.ranksums", "stats.kruskal"
     Returns
     -------
-    pval0 : array-like of shape (B, p)
-        A numpy array of size [B,p], whose entry i,j corresponds to
+    pval0 : array-like of shape (n_permutations, p)
+        A numpy array whose entry i,j corresponds to
         p_{(j)}(g_i.X) with notation of the AoS 2020 paper cited below
         (section 4.5) [1]_
     References
@@ -50,34 +51,34 @@ def get_permuted_p_values(X, labels, B=100, row_test_fun=stats.ttest_ind):
     # Init
     n, p = X.shape
 
-    # Step 1: calculate $p$-values for B permutations of the class assignments
+    # Step 1: calculate $p$-values for n_permutations permutations of the class assignments
 
     # 1.1: Intialise all vectors and matrices
     shuffled_labels = labels.copy()
 
-    all_shuffled_labels = np.zeros((B, n))
-    for bb in range(B):
+    all_shuffled_labels = np.zeros((n_permutations, n))
+    for b in range(n_permutations):
         np.random.shuffle(shuffled_labels)
-        all_shuffled_labels[bb] = shuffled_labels
+        all_shuffled_labels[b] = shuffled_labels
 
     # 1.2: calculate the p-values
-    pval0 = np.zeros([B, p])
+    pval0 = np.zeros([n_permutations, p])
 
     if row_test_fun == row_welch_tests:  # row Welch Tests (parallelized)
-        for b in range(B):
+        for b in range(n_permutations):
             permuted_test_result = row_welch_tests(X, all_shuffled_labels[b])
             pval0[b] = permuted_test_result['p_value']
     else:                     # standard scipy tests
-        for b in range(B):
+        for b in range(n_permutations):
             s0 = np.where(all_shuffled_labels[b] == 0)[0]
             s1 = np.where(all_shuffled_labels[b] == 1)[0]
 
-            for ii in range(p):
-                rwt = row_test_fun(X[s0, ii], X[s1, ii])
+            for i in range(p):
+                rwt = row_test_fun(X[s0, i], X[s1, i])
                 # Welch test with scipy -> rwt=stats.ttest_ind(X[s0, ii],
                 # X[s1, ii], equal_var=False)
 
-                pval0[b, ii] = rwt.pvalue
+                pval0[b, i] = rwt.pvalue
 
     # Step 2: sort each column
     pval0 = np.sort(pval0, axis=1)
@@ -85,24 +86,25 @@ def get_permuted_p_values(X, labels, B=100, row_test_fun=stats.ttest_ind):
     return pval0
 
 
-def get_permuted_p_values_one_sample(X, B=100, seed=None, n_jobs=1):
+def get_permuted_p_values_one_sample(X, n_permutations=100, seed=None, n_jobs=1):
     """
     Get permutation p-values: Get a matrix of p-values under the null
     hypothesis obtained by sign-flipping (one-sample test).
+
     Parameters
     ----------
     X : array-like of shape (n,p)
         numpy array of size [n,p], containing n observations of p variables
         (hypotheses)
-    B : int
+    n_permutations : int
         number of sign-flippings to be performed (default=100)
     n_jobs : int
         number of CPUs used for computation. Default = 1
 
     Returns
     -------
-    pval0 : array-like of shape (B, p)
-        A numpy array of size [B,p], whose rows are sorted increasingly.
+    pval0 : array-like of shape (n_permutations, p)
+        Numpy array whose rows are sorted increasingly.
         The entry i,j corresponds to p_{(j)}(g_i.X) with notation of [1]
         (section 4.5)_
     References
@@ -113,7 +115,7 @@ def get_permuted_p_values_one_sample(X, B=100, seed=None, n_jobs=1):
     """
 
     rng = check_random_state(seed)
-    seeds = rng.randint(np.iinfo(np.int32).max, size=B)
+    seeds = rng.randint(np.iinfo(np.int32).max, size=n_permutations)
     n, p = X.shape
 
     # intialise p-values
@@ -143,9 +145,9 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
     Parameters
     ----------
 
-    p0 :  array-like of shape (B, p)
-        A numpy array of size [B,p] of null p-values obtained from
-        B permutations for p hypotheses.
+    p0 :  array-like of shape (n_permutations, p)
+        Numpy array with null p-values obtained from
+        n_permutations permutations for p hypotheses.
     inverse_template : function
         A function with the same I/O as inverse_template_linear
     K :  int
@@ -155,8 +157,8 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
     Returns
     -------
 
-    array-like of shape (B,)
-        A numpy array of of size [B]  containing the pivotal statitics, whose
+    array-like of shape (n_permutations,)
+        Numpy array containing the pivotal statitics, whose
         j-th entry corresponds to psi(g_j.X) with notation of the AoS 2020
         paper cited below (section 4.5) [1]_
 
@@ -172,7 +174,7 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
 
     # Step 3: apply template function
     # For each feature p, compare sorted permuted p-values to template
-    B, p = p0.shape
+    n_permutations, p = p0.shape
     tk_inv_all = np.array([inverse_template(p0[:, i], i + 1, p)
                            for i in range(p)]).T
 
@@ -194,9 +196,9 @@ def get_pivotal_stats_shifted(p0,
     Parameters
     ----------
 
-    p0 :  array-like of shape (B, p)
-        A numpy array of size [B,p] of null p-values obtained from
-        B permutations for p hypotheses.
+    p0 :  array-like of shape (n_permutations, p)
+        Numpy array with null p-values obtained from
+        n_permutations permutations for p hypotheses.
     inverse_template : function
         A function with the same I/O as inverse_template_linear
     K :  int
@@ -209,8 +211,8 @@ def get_pivotal_stats_shifted(p0,
     Returns
     -------
 
-    array-like of shape (B,)
-        A numpy array of of size [B]  containing the pivotal statitics, whose
+    array-like of shape (n_permutations,)
+        Numpy array containing the pivotal statitics, whose
         j-th entry corresponds to psi(g_j.X) with notation of the AoS 2020
         paper cited below (section 4.5) [1]_
 
@@ -226,7 +228,7 @@ def get_pivotal_stats_shifted(p0,
 
     # Step 3: apply template function
     # For each feature p, compare sorted permuted p-values to template
-    B, p = p0.shape
+    p = p0.shape[1]
     tk_inv_all = np.array([inverse_template(p0[:, i], i + 1, p, k_min=k_min)
                            for i in range(p)]).T
 
@@ -244,14 +246,14 @@ def estimate_jer(template, pval0, k_max, k_min=0):
     Compute empirical JER for a given template and permuted p-values
     """
 
-    B, p = pval0.shape
-    id_ranks = np.tile(np.arange(0, p), (B, 1))
+    n_permutations, p = pval0.shape
+    id_ranks = np.tile(np.arange(0, p), (n_permutations, 1))
 
     cutoffs = np.searchsorted(template, pval0, side='right')
 
     signs = np.sign(id_ranks - cutoffs)
     sgn_trunc = signs[:, k_min: k_max]
-    JER = np.sum([np.any(sgn_trunc[perm] >= 0) for perm in range(B)]) / B
+    JER = np.sum([np.any(sgn_trunc[perm] >= 0) for perm in range(n_permutations)]) / n_permutations
 
     return JER
 
@@ -267,9 +269,9 @@ def calibrate_jer(alpha, learned_templates, pval0, k_max, min_dist=1, k_min=0):
 
     alpha : float
         confidence level in [0, 1]
-    learned_templates : array of shape (B', p)
-        learned templates for B' permutations and p voxels
-    pval0 :  array of shape (B, p)
+    learned_templates : array of shape (n_curves, p)
+        learned templates for n_curves permutations and p voxels
+    pval0 :  array of shape (n_permutations, p)
         permuted p-values
     k_max : int
         template size
@@ -290,8 +292,8 @@ def calibrate_jer(alpha, learned_templates, pval0, k_max, min_dist=1, k_min=0):
     # Sort permuted p-values
     pval0 = np.sort(pval0, axis=1)
 
-    B, p = learned_templates.shape
-    low, high = 0, B - 1
+    n_permutations, p = learned_templates.shape
+    low, high = 0, n_permutations - 1
 
     if estimate_jer(learned_templates[high],
                     pval0, k_max, k_min=k_min) <= alpha:
