@@ -265,7 +265,7 @@ def estimate_jer(template, pval0, k_max, k_min=0):
     sgn_trunc = signs[:, k_min: k_max]
     jer = np.sum(
         [np.any(sgn_trunc[perm] >= 0) for perm in range(n_permutations)]
-        ) / n_permutations
+    ) / n_permutations
 
     return jer
 
