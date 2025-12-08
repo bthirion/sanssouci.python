@@ -33,5 +33,4 @@ jobs:
         python -m pip install .
     - name: Test with pytest
       run: |
-        cd sanssouci/
         pytest --cov-report term-missing --cov=sanssouci
