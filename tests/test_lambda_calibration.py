@@ -81,7 +81,7 @@ def test_get_pivotal_stat():
     assert_array_almost_equal(piv_stat, np.min(tk_inv_all[:, :p], axis=1))
 
     piv_stat = get_pivotal_stats(p0,
-                                 inverse_template=inverse_linear_template, K=1)
+                                 inverse_template=inverse_linear_template, k_max=1)
     assert piv_stat.shape == (n_permutations,)
     assert piv_stat.min() > 1.e-7
     assert piv_stat.max() < p0.max() * p
@@ -91,7 +91,7 @@ def test_get_pivotal_stat():
     assert_array_almost_equal(piv_stat, np.min(tk_inv_all[:, :1], axis=1))
 
     piv_stat = get_pivotal_stats(p0, inverse_template=inverse_linear_template,
-                                 K=p)
+                                 k_max=p)
     assert piv_stat.shape == (n_permutations,)
     assert piv_stat.min() > 1.e-7
     assert piv_stat.max() < p0.max() * p
@@ -101,8 +101,8 @@ def test_get_pivotal_stat():
     assert_array_almost_equal(piv_stat, np.min(tk_inv_all[:, :p], axis=1))
 
     piv_statB = get_pivotal_stats(p0, inverse_template=inverse_linear_template,
-                                  K=p)
+                                  k_max=p)
     piv_statAll = get_pivotal_stats(p0,
                                     inverse_template=inverse_linear_template,
-                                    K=-1)
+                                    k_max=-1)
     assert_array_almost_equal(piv_statB, piv_statAll)

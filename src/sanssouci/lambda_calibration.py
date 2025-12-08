@@ -148,7 +148,7 @@ def _compute_permuted_pvalues_1samp(X, seed=None):
     return permuted_pvals
 
 
-def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
+def get_pivotal_stats(p0, inverse_template=inverse_linear_template, k_max=-1):
     """Get pivotal statistic
 
     Parameters
@@ -159,8 +159,8 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
         n_permutations permutations for p hypotheses.
     inverse_template : function
         A function with the same I/O as inverse_template_linear
-    K :  int
-        For JER control over 1:K, i.e. joint control of all k-FWER, k<= K.
+    k_max :  int
+        For JER control over 1:k_max, i.e. joint control of all k-FWER, k<= k_max.
         Automatically set to p if its input value is < 0.
 
     Returns
@@ -187,11 +187,11 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
     tk_inv_all = np.array([inverse_template(p0[:, i], i + 1, p)
                            for i in range(p)]).T
 
-    if K < 0:
-        K = tk_inv_all.shape[1]  # tkInv_all.shape[1] is equal to p
+    if k_max < 0:
+        k_max = tk_inv_all.shape[1]  # tkInv_all.shape[1] is equal to p
 
     # Step 4: report min for each row
-    pivotal_stats = np.min(tk_inv_all[:, :K], axis=1)
+    pivotal_stats = np.min(tk_inv_all[:, :k_max], axis=1)
 
     return pivotal_stats
 
@@ -199,7 +199,7 @@ def get_pivotal_stats(p0, inverse_template=inverse_linear_template, K=-1):
 def get_pivotal_stats_shifted(
         p0,
         inverse_template=inverse_shifted_linear_template,
-        K=-1,
+        k_max=-1,
         k_min=0):
     """Get pivotal statistic
 
@@ -211,8 +211,8 @@ def get_pivotal_stats_shifted(
         n_permutations permutations for p hypotheses.
     inverse_template : function
         A function with the same I/O as inverse_template_linear
-    K :  int
-        For JER control over 1:K, i.e. joint control of all k-FWER, k<= K.
+    k_max :  int
+        For JER control over 1:k_max, i.e. joint control of all k-FWER, k<= k_max.
         Automatically set to p if its input value is < 0.
     k_min : int
         parameter that defines the shift of the template.
@@ -242,11 +242,11 @@ def get_pivotal_stats_shifted(
     tk_inv_all = np.array([inverse_template(p0[:, i], i + 1, p, k_min=k_min)
                            for i in range(p)]).T
 
-    if K < 0:
-        K = tk_inv_all.shape[1]  # tkInv_all.shape[1] is equal to p
+    if k_max < 0:
+        k_max = tk_inv_all.shape[1]  # tkInv_all.shape[1] is equal to p
 
     # Step 4: report min for each row
-    pivotal_stats = np.min(tk_inv_all[:, k_min: K], axis=1)
+    pivotal_stats = np.min(tk_inv_all[:, k_min: k_max], axis=1)
 
     return pivotal_stats
 
@@ -319,7 +319,7 @@ def calibrate_jer(alpha, learned_templates, pval0, k_max, min_dist=1, k_min=0):
         warnings.warn("No suitable template found; Simes is used instead")
         # check if any learned templates controls the JER
         # if not, return calibrated Simes
-        piv_stat = get_pivotal_stats(pval0, K=k_max)
+        piv_stat = get_pivotal_stats(pval0, k_max=k_max)
         lambda_quant = np.quantile(piv_stat, alpha)
         simes_thr = linear_template(lambda_quant, k_max, p)
         return simes_thr
