@@ -147,10 +147,9 @@ print('False discovery proportion:', fdp)
 #of true null hypotheses is less than this bound:
 
 thr = sa.linear_template(alpha, p, p)
-
 bound = sa.max_fp(pval, thr)
-print("bound on null variables:", bound)
-print('Number of true null hypotheses:', p0)
+print("\nBound on the number of null variables:", int(bound))
+print('Note: the number of true null hypotheses is', p0)
 
 # %%
 # Number of false positives by BH
@@ -160,7 +159,7 @@ print('Number of true null hypotheses:', p0)
 #by the BH procedure.
 
 bound = sa.max_fp(sorted_pval[np.where(below)], thr)
-print("\nGS2011 post hoc bound onf alse positives for BH set:", bound)
+print("GS2011 post hoc bound on false positives for BH set:", int(bound))
 
 # In this particular example, the bound is substantially larger than the true
 # number of false positives, meaning that the GS2011 bound is conservative.
@@ -174,16 +173,13 @@ print("\nGS2011 post hoc bound onf alse positives for BH set:", bound)
 #choose how many features to retain based on the value of the bound. 
 
 max_fp = sa.curve_max_fp(sorted_pval, thr)
-max_fdp = max_fp / bh_index  
+max_fdp = max_fp / np.arange(1, p + 1)
 min_tp = np.arange(1, p + 1) - max_fp
 
 plt.figure()
-plt.plot(max_fdp[:1000], )
-plt.title("Upper confidence bound on the FDP among smallest k p-values")
-plt.xlabel("k")
-
-plt.figure()
 plt.plot(min_tp[:1000], )
+plt.plot([bh_index, bh_index], [0, min_tp[1000]], color='k')
+plt.text(bh_index + 5, min_tp[bh_index] / 2, "BH set", color='k')
 plt.title("Lower confidence bound on the TP among smallest k p-values")
 plt.xlabel("k")
 
@@ -209,6 +205,7 @@ plt.xlabel("k")
 # # calibration can be achieved by permutation of class labels, which is available
 # in the sansSouci.python package:
 
+# %%
 n_permutations = 1000
 pval0 = sa.get_permuted_p_values(
     X,
@@ -218,7 +215,6 @@ pval0 = sa.get_permuted_p_values(
 )
 pivot_stat = sa.get_pivotal_stats(pval0, k_max=p)
 lambda_ = np.quantile(pivot_stat, alpha)
-print(f'\nlambda: {np.round(lambda_, 2)}, alpha: {alpha}')
 
 #Here we obtain $\lambda > \alpha$. This practically means that in order to
 #obtain post hoc statements at confidence level $1-\alpha$, the user can use
@@ -235,12 +231,9 @@ print(f'\nlambda: {np.round(lambda_, 2)}, alpha: {alpha}')
 # taking $S=$ all $p$ hypotheses. With probability $1-\alpha = 0.9$ the number
 # of true null hypotheses should be less than this bound:
 
-
 thr_cal = sa.linear_template(lambda_, p, p)
 bound = sa.max_fp(pval, thr_cal)
-print("bound on null variables:", bound)
-print('Number of true null hypotheses:', p0)
-
+print("\nBound on the number of null variables with BNR2020:", int(bound))
 
 # As expected, the bound is still valid, and tighter than before.
 
@@ -250,10 +243,9 @@ print('Number of true null hypotheses:', p0)
 # hypotheses rejected by the BH procedure.
 
 bound_cal = sa.max_fp(sorted_pval[np.where(below)], thr_cal)
-print("BNR2020 post hoc bound:", bound_cal)
+print("BNR2020 post hoc bound on false positives for the BH set:", int(bound_cal))
 
-
-# Again, the BNR2020 bound is still valid, and tighter than the GS2011 bound.
+# The BNR2020 bound is still valid, and tighter than the GS2011 bound.
 
 # %%
 # Confidence envelopes for the FDP
@@ -261,10 +253,14 @@ print("BNR2020 post hoc bound:", bound_cal)
 max_fp_cal = sa.curve_max_fp(sorted_pval, thr_cal)
 max_fdp_cal = max_fp_cal / np.arange(1, p + 1)
 
-plt.plot(max_fdp_cal[:1000], '-r', label = 'Simes')
-plt.plot(max_fdp[:1000], '-', label = 'Simes + lambda-calibration')
+plt.figure()
+plt.plot(max_fdp_cal[:1000], '-r', label = 'Simes + lambda-calibration')
+plt.plot(max_fdp[:1000], '-', label = 'Simes')
 plt.title('Upper confidence bound on the FDP among smallest k p-values')
+plt.plot([bh_index, bh_index], [0, max_fdp[1000]], color='k')
+plt.text(bh_index + 5, max_fdp_cal[bh_index] / 2, "BH set", color='k')
 plt.xlabel('k')
+plt.legend()
 
 # The upper bound obtained by $\lambda$-calibration (in red) is uniformly tighter than the original "parametric" one.
 
