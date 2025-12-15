@@ -128,17 +128,18 @@ print('False discovery proportion:', fdp)
 # 3. Post hoc inference
 # ---------------------
 
-# In order to bypass these limitations, post hoc inference makes it possible to
-# *build confidence statements on the number of true/false positives within any
-# set $S$ of selected variables*: $S$ may be selected after seing the data
+# In order to bypass these limitations, post hoc inference makes it possible
+# to *build confidence statements on the number of true/false positives within 
+# any set $S$ of selected variables*: $S$ may be selected after seing the data
 # (e.g., $S$ may be the set of rejections by the BH procedure), and multiple
-# choices of $S$ are allowed. Post hoc inference has been popularized by Goeman
-# and Solari (2011) and its application to neuroimaging data is illustrated in
-# Rosenblatt *et al*, 2018.  This approach is implemented in the R package 'ARI',
-# which relies on the R package 'cherry'.
+# choices of $S$ are allowed. Post hoc inference has been popularized by 
+# Goeman and Solari (2011) and its application to neuroimaging data is 
+# illustrated in Rosenblatt *et al*, 2018.  
+# This approach is implemented in the 'ARI'package, which relies on the
+# 'cherry' R package.
 
-# Below, we use an equivalent formulation of the bound of Goeman and Solari (2011)
-# implemented in the python package 'sansSouci.python'. 
+# Below, we use an equivalent formulation of the bound of Goeman and Solari
+# (2011) implemented in the 'sansSouci.python' Python package. 
 
 # %%
 # Upper bound on the number of false discoveries
@@ -172,7 +173,7 @@ print("GS2011 post hoc bound on false positives for BH set:", int(bound))
 # Confidence curves for the False Discovery Proportion are another typical
 # output of post hoc inference. These curves display post hoc bounds as a
 # function of the number of most significant features retained. The user may
-# choose how many features to retain based on the value of the bound. 
+# choose how many features to retain based on the value of the bound.
 
 max_fp = sa.curve_max_fp(sorted_pval, thr)
 max_fdp = max_fp / np.arange(1, p + 1)
@@ -195,9 +196,9 @@ plt.xlabel("k")
 # Although the PRDS assumption is widely accepted for fMRI studies 
 # (see Genovese, Lazar, and Nichols (2002),Nichols and Hayasaka (2003)),
 # we argue (and demonstrate below) that this
-# assumption yields overly conservative post hoc bounds. Indeed, the Simes bound
-# is by construction not adaptive to the specific type of dependence at hand for
-# a particular data set.
+# assumption yields overly conservative post hoc bounds.
+# Indeed, the Simes bound is by construction not adaptive to the specific type
+# of dependence at hand for a particular data set.
 
 # To bypass these limitations, Blanchard, Neuvial, and Roquain (2020) have
 # proposed a randomization-based procedure known as $\lambda$-calibration,
@@ -205,8 +206,8 @@ plt.xlabel("k")
 # the data set at hand. We note that a related approach has been proposed by
 # Hemerik, Solari, and Goeman (2019), and Andreella *et al* (2020)
 # (https://arxiv.org/abs/2012.00368).  In the case of two-sample tests, this
-# calibration can be achieved by permutation of class labels, which is available
-# in the sansSouci.python package:
+# calibration can be achieved by permutation of class labels, which is
+# available in the sansSouci.python package:
 
 # %%
 n_permutations = 1000
@@ -223,8 +224,8 @@ lambda_ = np.quantile(pivot_stat, alpha)
 # obtain post hoc statements at confidence level $1-\alpha$, the user can use
 # the GS2011 bound at level $\lambda$. As  $\lambda > \alpha$, this means that
 # the new proposed bound will tighter (ie, less conservative) than the original
-# GS2011 bound. The gap between $\lambda$ and $\alpha$ can be interpreted as the
-# power gain obtained by $\lambda$-calibration, which is illustrated below.
+# GS2011 bound. The gap between $\lambda$ and $\alpha$ can be interpreted as
+# the power gain obtained by $\lambda$-calibration, which is illustrated below.
 
 # %%
 # Upper bound on the number of null hypotheses
@@ -266,6 +267,7 @@ plt.text(bh_index + 5, max_fdp_cal[bh_index] / 2, "BH set", color='k')
 plt.xlabel('k')
 plt.legend()
 
-# The upper bound obtained by $\lambda$-calibration (in red) is uniformly tighter than the original "parametric" one.
+# The upper bound obtained by $\lambda$-calibration (in red) is uniformly 
+# tighter than the original "parametric" one.
 
 plt.show()
