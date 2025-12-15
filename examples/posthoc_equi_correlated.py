@@ -35,7 +35,7 @@ import numpy as np
 p = 50000         # number of features     (eg : number of voxels in an image)
 n = 80            # number of observations  (eg : number of images)
 pi0 = 0.99        # proportion of noise (true null hypotheses)
-p0 = int(np.round(pi0 * p)) # number of true null hypotheses (non active voxels)
+p0 = int(np.round(pi0 * p))  # number of non active voxels (null hypotheses)
 rho = 0.3         # equi-correlation
 s = 1             # signal to noise ratio
 
@@ -44,11 +44,11 @@ rng = np.random.default_rng(2025)
 Z = rng.normal(size=(n, p))
 w = rng.normal(size=(n))
 W = np.repeat(w[:, np.newaxis], p, 1)
-X = np.sqrt(1-rho) * Z + np.sqrt(rho) * W
+X = np.sqrt(1 - rho) * Z + np.sqrt(rho) * W
 
 # add signal (for false null hypotheses)
-y = np.random.binomial(1, 0.5, size=n) # two balanced categories
-X[y==1, (p0 + 1): p] += s
+y = np.random.binomial(1, 0.5, size=n)  # two balanced categories
+X[y == 1, (p0 + 1): p] += s
 
 # %%
 # calculate the p-values
@@ -80,42 +80,44 @@ ax.set_title('Smallest 1000 p-values')
 # This is classically done using the Benjamini-Hochberg (1995) procedure.
 
 # The Benjamini-Hochberg (BH) procedure at level $\alpha$ rejects the smallest 
-# $index$ $p$-values, where $index$ is the largest crossing point between the sorted 
-# $p$-values and the line passing by $(0,0)$ and $(p, \alpha)$:
+# $index$ $p$-values, where $index$ is the largest crossing point between the 
+# sorted $p$-values and the line passing by $(0,0)$ and $(p, \alpha)$:
 
 # adapted from https://matthew-brett.github.io/teaching/fdr.html
-alpha = 0.1 # level of control on the FDR
+alpha = 0.1  # level of control on the FDR
 
 plt.plot(sorted_pval[:1000], '.')
 plt.plot(alpha * np.arange(1, 1000) / p, 'r')
 plt.title("BH procedure")
 
-below = sorted_pval < alpha * np.arange(1, p + 1) / p    # True where p(i) < qi / N
-bh_index = np.max(np.where(below)[0])  # Max Python array index  where p(i) < qi / N
-print('BH statistic:', sorted_pval[bh_index ])
-print('BH index  :', bh_index   + 1) 
+below = sorted_pval < alpha * np.arange(1, p + 1) / p  
+# True where p(i) < qi / N
+bh_index = np.max(np.where(below)[0])
+# Max Python array index  where p(i) < qi / N
+print('BH statistic:', sorted_pval[bh_index])
+print('BH index  :', bh_index + 1) 
 
 # %%
 # Intrinsic limitations of FDR control
 # ------------------------------------
 
 
-#As noted by Goeman and Solari (2011), an important limitation to the above
-#approach is that FDR controlling procedures output a single set of 
-#"significant features", whereas users are typically interested in other
-#subsets of features.
+# As noted by Goeman and Solari (2011), an important limitation to the above
+# approach is that FDR controlling procedures output a single set of 
+# "significant features", whereas users are typically interested in other
+# subsets of features.
 
-#Another caveat is that FDR control (which is by definition a control in
-#expectation), may not be interpretable in the situation where the underlying
-#FDP is highly variable. Unfortunately, this situation is common in 
-#high-dimensional data sets with non independent features, in particular in
-#genomics and neuroimaging.
+# Another caveat is that FDR control (which is by definition a control in
+# expectation), may not be interpretable in the situation where the underlying
+# FDP is highly variable. Unfortunately, this situation is common in 
+# high-dimensional data sets with non independent features, in particular in
+# genomics and neuroimaging.
 
-#Because we are working with simuated data, we can actually calculate the true
-#False Discovery Proportion (FDP) as done in the next cell. However, this
-#could not be done when analyzing actual data.
+# Because we are working with simuated data, we can actually calculate the true
+# False Discovery Proportion (FDP) as done in the next cell. However, this
+# could not be done when analyzing actual data.
 
-below0 = pval[:p0] < (alpha * (bh_index   - 1) / p)
+below0 = pval[:p0] < (alpha * (bh_index - 1) / p)
 fp = np.sum(below0)
 print('False positives:', fp)
 
@@ -126,25 +128,25 @@ print('False discovery proportion:', fdp)
 # 3. Post hoc inference
 # ---------------------
 
-#In order to bypass these limitations, post hoc inference makes it possible to
-#*build confidence statements on the number of true/false positives within any
-#set $S$ of selected variables*: $S$ may be selected after seing the data
-#(e.g., $S$ may be the set of rejections by the BH procedure), and multiple
-#choices of $S$ are allowed. Post hoc inference has been popularized by Goeman
-#and Solari (2011) and its application to neuroimaging data is illustrated in
-#Rosenblatt *et al*, 2018.  This approach is implemented in the R package 'ARI',
-#which relies on the R package 'cherry'.
+# In order to bypass these limitations, post hoc inference makes it possible to
+# *build confidence statements on the number of true/false positives within any
+# set $S$ of selected variables*: $S$ may be selected after seing the data
+# (e.g., $S$ may be the set of rejections by the BH procedure), and multiple
+# choices of $S$ are allowed. Post hoc inference has been popularized by Goeman
+# and Solari (2011) and its application to neuroimaging data is illustrated in
+# Rosenblatt *et al*, 2018.  This approach is implemented in the R package 'ARI',
+# which relies on the R package 'cherry'.
 
-#Below, we use an equivalent formulation of the bound of Goeman and Solari (2011)
-#implemented in the python package 'sansSouci.python'. 
+# Below, we use an equivalent formulation of the bound of Goeman and Solari (2011)
+# implemented in the python package 'sansSouci.python'. 
 
 # %%
 # Upper bound on the number of false discoveries
 # ----------------------------------------------
 
-#We obtain an upper bound on $p_0$, the number of true null hypotheses, by
-#taking $S=$ all $p$ hypotheses. With probability $1-\alpha = 0.9$ the number
-#of true null hypotheses is less than this bound:
+# We obtain an upper bound on $p_0$, the number of true null hypotheses, by
+# taking $S=$ all $p$ hypotheses. With probability $1-\alpha = 0.9$ the number
+# of true null hypotheses is less than this bound:
 
 thr = sa.linear_template(alpha, p, p)
 bound = sa.max_fp(pval, thr)
@@ -154,9 +156,9 @@ print('Note: the number of true null hypotheses is', p0)
 # %%
 # Number of false positives by BH
 
-#Post hoc inference allows the user to select any subset of features $S$ of
-#interest. In particular, we can chose $S$ as the set of features selected
-#by the BH procedure.
+# Post hoc inference allows the user to select any subset of features $S$ of
+# interest. In particular, we can chose $S$ as the set of features selected
+# by the BH procedure.
 
 bound = sa.max_fp(sorted_pval[np.where(below)], thr)
 print("GS2011 post hoc bound on false positives for BH set:", int(bound))
@@ -167,10 +169,10 @@ print("GS2011 post hoc bound on false positives for BH set:", int(bound))
 # %%
 # Confidence curves for the FDP
 
-#Confidence curves for the False Discovery Proportion are another typical
-#output of post hoc inference. These curves display post hoc bounds as a
-#function of the number of most significant features retained. The user may
-#choose how many features to retain based on the value of the bound. 
+# Confidence curves for the False Discovery Proportion are another typical
+# output of post hoc inference. These curves display post hoc bounds as a
+# function of the number of most significant features retained. The user may
+# choose how many features to retain based on the value of the bound. 
 
 max_fp = sa.curve_max_fp(sorted_pval, thr)
 max_fdp = max_fp / np.arange(1, p + 1)
@@ -188,10 +190,11 @@ plt.xlabel("k")
 # --------------------------------------------------------------
 
 # As discussed in Blanchard, Neuvial, and Roquain (2020), the above-described
-# bound is known to be valid only under certain positive dependence assumptions
-# (PRDS) on the joint $p$-value distribution. Although the PRDS assumption is
-# widely accepted for fMRI studies (see Genovese, Lazar, and Nichols (2002),
-# Nichols and Hayasaka (2003)), we argue (and demonstrate below) that this
+# bound is known to be valid only under certain positive dependence
+# assumptions(PRDS) on the joint $p$-value distribution. 
+# Although the PRDS assumption is widely accepted for fMRI studies 
+# (see Genovese, Lazar, and Nichols (2002),Nichols and Hayasaka (2003)),
+# we argue (and demonstrate below) that this
 # assumption yields overly conservative post hoc bounds. Indeed, the Simes bound
 # is by construction not adaptive to the specific type of dependence at hand for
 # a particular data set.
@@ -202,7 +205,7 @@ plt.xlabel("k")
 # the data set at hand. We note that a related approach has been proposed by
 # Hemerik, Solari, and Goeman (2019), and Andreella *et al* (2020)
 # (https://arxiv.org/abs/2012.00368).  In the case of two-sample tests, this
-# # calibration can be achieved by permutation of class labels, which is available
+# calibration can be achieved by permutation of class labels, which is available
 # in the sansSouci.python package:
 
 # %%
@@ -210,18 +213,18 @@ n_permutations = 1000
 pval0 = sa.get_permuted_p_values(
     X,
     y,
-    n_permutations=n_permutations ,
+    n_permutations=n_permutations,
     row_test_fun=sa.row_welch_tests
 )
 pivot_stat = sa.get_pivotal_stats(pval0, k_max=p)
 lambda_ = np.quantile(pivot_stat, alpha)
 
-#Here we obtain $\lambda > \alpha$. This practically means that in order to
-#obtain post hoc statements at confidence level $1-\alpha$, the user can use
-#the GS2011 bound at level $\lambda$. As  $\lambda > \alpha$, this means that
-#the new proposed bound will tighter (ie, less conservative) than the original
-#GS2011 bound. The gap between $\lambda$ and $\alpha$ can be interpreted as the
-#power gain obtained by $\lambda$-calibration, which is illustrated below.
+# Here we obtain $\lambda > \alpha$. This practically means that in order to
+# obtain post hoc statements at confidence level $1-\alpha$, the user can use
+# the GS2011 bound at level $\lambda$. As  $\lambda > \alpha$, this means that
+# the new proposed bound will tighter (ie, less conservative) than the original
+# GS2011 bound. The gap between $\lambda$ and $\alpha$ can be interpreted as the
+# power gain obtained by $\lambda$-calibration, which is illustrated below.
 
 # %%
 # Upper bound on the number of null hypotheses
@@ -243,7 +246,8 @@ print("\nBound on the number of null variables with BNR2020:", int(bound))
 # hypotheses rejected by the BH procedure.
 
 bound_cal = sa.max_fp(sorted_pval[np.where(below)], thr_cal)
-print("BNR2020 post hoc bound on false positives for the BH set:", int(bound_cal))
+print("BNR2020 post hoc bound on false positives for the BH set:",
+      int(bound_cal))
 
 # The BNR2020 bound is still valid, and tighter than the GS2011 bound.
 
@@ -254,8 +258,8 @@ max_fp_cal = sa.curve_max_fp(sorted_pval, thr_cal)
 max_fdp_cal = max_fp_cal / np.arange(1, p + 1)
 
 plt.figure()
-plt.plot(max_fdp_cal[:1000], '-r', label = 'Simes + lambda-calibration')
-plt.plot(max_fdp[:1000], '-', label = 'Simes')
+plt.plot(max_fdp_cal[:1000], '-r', label='Simes + lambda-calibration')
+plt.plot(max_fdp[:1000], '-', label='Simes')
 plt.title('Upper confidence bound on the FDP among smallest k p-values')
 plt.plot([bh_index, bh_index], [0, max_fdp[1000]], color='k')
 plt.text(bh_index + 5, max_fdp_cal[bh_index] / 2, "BH set", color='k')
